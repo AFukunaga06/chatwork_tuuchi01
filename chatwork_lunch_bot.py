@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Chatwork 昼休憩通知ボット
-毎日12:00に「お昼休憩に入ります。」をChatworkに送信
+Chatwork 休憩通知ボット
+複数の時間に休憩開始・終了メッセージをChatworkに送信
 """
 
 import requests
@@ -55,18 +55,30 @@ class ChatworkLunchBot:
         message = "お昼休憩に入ります。"
         self.send_message(message)
 
-    def send_test_message(self):
-        """テストメッセージを送信"""
-        message = "テストです"
+    def send_afternoon_break_start_message(self):
+        """午後の休憩開始メッセージを送信"""
+        message = "休憩に入ります。"
+        self.send_message(message)
+
+    def send_afternoon_break_end_message(self):
+        """午後の休憩終了メッセージを送信"""
+        message = "休憩終わります。"
         self.send_message(message)
 
     def start_scheduler(self):
         """スケジューラーを開始"""
-        # 毎日12:03に実行
+        # 12:03 - 昼休憩開始
         schedule.every().day.at("12:03").do(self.send_lunch_break_message)
+        # 14:17 - 午後の休憩開始
+        schedule.every().day.at("14:17").do(self.send_afternoon_break_start_message)
+        # 14:28 - 午後の休憩終了
+        schedule.every().day.at("14:28").do(self.send_afternoon_break_end_message)
 
-        print("Chatwork昼休憩ボットを開始しました")
-        print("毎日12:03に「お昼休憩に入ります。」を送信します")
+        print("Chatwork通知ボットを開始しました")
+        print("スケジュール:")
+        print("  12:03 - 「お昼休憩に入ります。」")
+        print("  14:17 - 「休憩に入ります。」")
+        print("  14:28 - 「休憩終わります。」")
         print("停止するには Ctrl+C を押してください")
 
         try:
