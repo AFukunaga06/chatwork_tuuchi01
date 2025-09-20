@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatwork通知ボット制御パネル</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+            font-weight: 300;
+        }
+
+        .status-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border-left: 5px solid #007bff;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .status-dot {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .status-dot.running {
+            background: #28a745;
+            box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+        }
+
+        .status-dot.stopped {
+            background: #dc3545;
+            box-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
+        }
+
+        .status-text {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .schedule {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .schedule h3 {
+            color: #1976d2;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+
+        .schedule-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid #bbdefb;
+        }
+
+        .schedule-item:last-child {
+            border-bottom: none;
+        }
+
+        .time {
+            font-weight: bold;
+            color: #1976d2;
+        }
+
+        .message {
+            color: #555;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #28a745, #20c997);
+            color: white;
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #dc3545, #fd7e14);
+            color: white;
+        }
+
+        .btn-restart {
+            background: linear-gradient(135deg, #ffc107, #fd7e14);
+            color: white;
+            grid-column: span 2;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message-area {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            min-height: 60px;
+            border: 1px solid #dee2e6;
+        }
+
+        .message-content {
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .last-update {
+            text-align: center;
+            color: #6c757d;
+            font-size: 0.9em;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Chatwork通知ボット</h1>
+
+        <div class="status-card">
+            <div class="status-indicator">
+                <div class="status-dot" id="statusDot"></div>
+                <span class="status-text" id="statusText">状態を確認中...</span>
+            </div>
+
+            <div class="schedule">
+                <h3>📅 通知スケジュール</h3>
+                <div class="schedule-item">
+                    <span class="time">12:03</span>
+                    <span class="message">お昼休憩に入ります。</span>
+                </div>
+                <div class="schedule-item">
+                    <span class="time">14:17</span>
+                    <span class="message">休憩に入ります。</span>
+                </div>
+                <div class="schedule-item">
+                    <span class="time">14:28</span>
+                    <span class="message">休憩終わります。</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-start" id="startBtn" onclick="controlBot('start')">
+                ▶️ 開始
+            </button>
+            <button class="btn btn-stop" id="stopBtn" onclick="controlBot('stop')">
+                ⏹️ 停止
+            </button>
+            <button class="btn btn-restart" id="restartBtn" onclick="controlBot('restart')">
+                🔄 再起動
+            </button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>処理中...</p>
+        </div>
+
+        <div class="message-area">
+            <div class="message-content" id="messageContent">
+                ボタンをクリックしてボットを制御してください
+            </div>
+        </div>
+
+        <div class="last-update" id="lastUpdate"></div>
+    </div>
+
+    <script>
+        let isLoading = false;
+
+        // 初期状態を取得
+        updateStatus();
+
+        // 30秒ごとに状態を更新
+        setInterval(updateStatus, 30000);
+
+        async function updateStatus() {
+            if (isLoading) return;
+
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+
+                const statusDot = document.getElementById('statusDot');
+                const statusText = document.getElementById('statusText');
+                const lastUpdate = document.getElementById('lastUpdate');
+
+                if (data.running) {
+                    statusDot.className = 'status-dot running';
+                    statusText.textContent = '実行中';
+                } else {
+                    statusDot.className = 'status-dot stopped';
+                    statusText.textContent = '停止中';
+                }
+
+                lastUpdate.textContent = `最終更新: ${data.last_check}`;
+
+                // ボタンの状態を更新
+                updateButtonStates(data.running);
+
+            } catch (error) {
+                console.error('Status update failed:', error);
+                document.getElementById('messageContent').textContent =
+                    'ステータスの取得に失敗しました';
+            }
+        }
+
+        function updateButtonStates(isRunning) {
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const restartBtn = document.getElementById('restartBtn');
+
+            startBtn.disabled = isRunning;
+            stopBtn.disabled = !isRunning;
+            restartBtn.disabled = false;
+        }
+
+        async function controlBot(command) {
+            if (isLoading) return;
+
+            isLoading = true;
+            const loading = document.getElementById('loading');
+            const messageContent = document.getElementById('messageContent');
+
+            // ローディング表示
+            loading.style.display = 'block';
+            messageContent.textContent = `${getCommandText(command)}中...`;
+
+            // ボタンを無効化
+            document.querySelectorAll('.btn').forEach(btn => btn.disabled = true);
+
+            try {
+                const response = await fetch('/api/control', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ command: command })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    messageContent.textContent = data.message;
+                    // 状態を更新
+                    setTimeout(updateStatus, 1000);
+                } else {
+                    messageContent.textContent = `エラー: ${data.message}`;
+                }
+
+            } catch (error) {
+                console.error('Control failed:', error);
+                messageContent.textContent = 'コマンドの実行に失敗しました';
+            } finally {
+                isLoading = false;
+                loading.style.display = 'none';
+
+                // ボタンを再有効化（状態更新後に正しく設定される）
+                setTimeout(updateStatus, 500);
+            }
+        }
+
+        function getCommandText(command) {
+            switch(command) {
+                case 'start': return '開始';
+                case 'stop': return '停止';
+                case 'restart': return '再起動';
+                default: return '処理';
+            }
+        }
+    </script>
+</body>
+</html>

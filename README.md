@@ -22,7 +22,23 @@ pip3 install requests schedule
 
 ## 使用方法
 
-### 制御コマンド
+### Web UI（推奨）
+
+1. Web UIを起動:
+```bash
+./start_web_ui.sh
+# または
+python3 web_ui.py
+```
+
+2. ブラウザで `http://localhost:5000` にアクセス
+
+3. ボタンをクリックしてボットを制御:
+   - **開始** - ボットを開始
+   - **停止** - ボットを停止
+   - **再起動** - ボットを再起動
+
+### コマンドライン
 
 ```bash
 # ボット開始
@@ -49,6 +65,9 @@ python3 chatwork_lunch_bot.py
 
 - `chatwork_lunch_bot.py` - メインボットスクリプト
 - `chatwork_control.py` - ボット制御スクリプト
+- `web_ui.py` - Web UIサーバー
+- `start_web_ui.sh` - Web UI起動スクリプト
+- `templates/index.html` - Web UIテンプレート
 - `setup_chatwork_bot.sh` - 初期セットアップスクリプト
 - `README.md` - このファイル
 
